@@ -20,20 +20,13 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        navigationItem.leftBarButtonItem = editButtonItem
-
-        let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(insertNewObject(_:)))
-        navigationItem.rightBarButtonItem = addButton
-        if let split = splitViewController {
-            let controllers = split.viewControllers
-            detailViewController = (controllers[controllers.count-1] as! UINavigationController).topViewController as? DetailViewController
-        }
         
         var message = ""
         
         if let url = URL(string: "http://opensource.googleblog.com/feeds/posts/default?alt=json") {
             
-            let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
+            let task = URLSession.shared.dataTask(with: url) {
+                (data, response, error) in
                 
                 if error != nil {
                     
@@ -44,6 +37,9 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
                     if let urlContent = data {
                         
                         var articleCount = 0
+                        var blogArticleTitle = ""
+                        var blogArticleContent = ""
+                        var blogArticlePublished = ""
                         
                         do {
                             
@@ -76,32 +72,101 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
                                 
                             } else {
                                 
-                                print("Title is misbehaving")
+                                print("Blog title is misbehaving")
                                 
                             }
                             
+                            // Section deleting previous content from CoreData before populating DB again
+                            let context = self.fetchedResultsController.managedObjectContext
+                            
+                            let request = NSFetchRequest<Event>(entityName: "Event")
+                            
+                            do {
+                                
+                                let results = try context.fetch(request)
+                                
+                                if results.count > 0 {
+                                
+                                    for result in results {
+                                        
+                                        context.delete(result)
+                                        
+                                        do {
+                                            
+                                            try context.save()
+                                            
+                                        } catch {
+                                            
+                                            print("Specific delete unaccomplished")
+                                            
+                                        }
+                                        
+                                    }
+                                    
+                                }
+                                
+                            } catch {
+                                
+                                print("Delete utterly failed")
+                                
+                            }
+                            
+                            // Pulling JSON data from Google blogs
                             for i in 0..<articleCount {
                                 
                                 if let titleArticle = ((((jsonResult["feed"] as? [String:AnyObject])? ["entry"]  as? NSArray)?[i] as? NSDictionary)? ["title"] as? [String:AnyObject])? ["$t"] as? String {
                                     
                                     message += "\nArticle Title: " + titleArticle
+                                    blogArticleTitle = titleArticle
                                     
                                 } else {
                                     
                                     print("Article title is being naughty")
                                     
                                 }
-                            }
                             
-                            if let articleContent = ((((jsonResult["feed"] as? [String:AnyObject])? ["entry"]  as? NSArray)?[0] as? NSDictionary)? ["content"] as? [String:AnyObject])? ["$t"] as? String {
+                            
+                                if let articleContent = ((((jsonResult["feed"] as? [String:AnyObject])? ["entry"]  as? NSArray)?[i] as? NSDictionary)? ["content"] as? [String:AnyObject])? ["$t"] as? String {
+                                    
+                                    message += "\nArticle Content: " + articleContent
+                                    blogArticleContent = articleContent
+                                    
+                                } else {
+                                    
+                                    print("Article content is being rebellious")
+                                    
+                                }
                                 
-                                message += "\nArticle Content: " + articleContent
+                                if let articlePublished = ((((jsonResult["feed"] as? [String:AnyObject])? ["entry"]  as? NSArray)?[i] as? NSDictionary)? ["published"] as? [String:AnyObject])? ["$t"] as? String {
+                                    
+                                    message += "\nArticle Published: " + articlePublished
+                                    blogArticlePublished = articlePublished
+                                    
+                                } else {
+                                    
+                                    print("Article published date is ignoring me completely")
+                                    
+                                }
                                 
-                            } else {
+                                let newEvent = Event(context: context)
                                 
-                                print("Article content is being rebellious")
-                                
+                                // Populating DB in CoreData.
+                                newEvent.timestamp = NSDate()
+                                newEvent.setValue(blogArticlePublished, forKey: "published")
+                                newEvent.setValue(blogArticleTitle, forKey: "title")
+                                newEvent.setValue(blogArticleContent, forKey: "content")
+
+                                // Save the context.
+                                do {
+                                    try context.save()
+                                } catch {
+                                    // Replace this implementation with code to handle the error appropriately.
+                                    // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+                                    let nserror = error as NSError
+                                    fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+                                }
                             }
+                            self.tableView.reloadData()
                             
                         } catch {
                             
@@ -128,11 +193,6 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
             
         }
         
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        clearsSelectionOnViewWillAppear = splitViewController!.isCollapsed
-        super.viewWillAppear(animated)
     }
 
     override func didReceiveMemoryWarning() {
@@ -192,27 +252,11 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
 
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         // Return false if you do not want the specified item to be editable.
-        return true
-    }
-
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            let context = fetchedResultsController.managedObjectContext
-            context.delete(fetchedResultsController.object(at: indexPath))
-                
-            do {
-                try context.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nserror = error as NSError
-                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
-            }
-        }
+        return false
     }
 
     func configureCell(_ cell: UITableViewCell, withEvent event: Event) {
-        cell.textLabel!.text = event.timestamp!.description
+        cell.textLabel!.text = event.value(forKey: "title") as? String
     }
 
     // MARK: - Fetched results controller
@@ -228,7 +272,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         fetchRequest.fetchBatchSize = 20
         
         // Edit the sort key as appropriate.
-        let sortDescriptor = NSSortDescriptor(key: "timestamp", ascending: false)
+        let sortDescriptor = NSSortDescriptor(key: "published", ascending: false)
         
         fetchRequest.sortDescriptors = [sortDescriptor]
         

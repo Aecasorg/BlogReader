@@ -7,8 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AF32DAF41F568EC700BE3E5F /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = AFCEF4471F4049670069A217 /* Info.plist */; };
+		AF32DAF51F57E1BF00BE3E5F /* BlogReader.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = AFCEF4381F4049670069A217 /* BlogReader.xcdatamodeld */; };
 		AFCEF4371F4049670069A217 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCEF4361F4049670069A217 /* AppDelegate.swift */; };
-		AFCEF43A1F4049670069A217 /* BlogReader.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = AFCEF4381F4049670069A217 /* BlogReader.xcdatamodeld */; };
 		AFCEF43C1F4049670069A217 /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCEF43B1F4049670069A217 /* MasterViewController.swift */; };
 		AFCEF43E1F4049670069A217 /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCEF43D1F4049670069A217 /* DetailViewController.swift */; };
 		AFCEF4411F4049670069A217 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AFCEF43F1F4049670069A217 /* Main.storyboard */; };
@@ -129,6 +130,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AF32DAF41F568EC700BE3E5F /* Info.plist in Resources */,
 				AFCEF4461F4049670069A217 /* LaunchScreen.storyboard in Resources */,
 				AFCEF4431F4049670069A217 /* Assets.xcassets in Resources */,
 				AFCEF4411F4049670069A217 /* Main.storyboard in Resources */,
@@ -142,9 +144,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AFCEF43A1F4049670069A217 /* BlogReader.xcdatamodeld in Sources */,
 				AFCEF4371F4049670069A217 /* AppDelegate.swift in Sources */,
 				AFCEF43C1F4049670069A217 /* MasterViewController.swift in Sources */,
+				AF32DAF51F57E1BF00BE3E5F /* BlogReader.xcdatamodeld in Sources */,
 				AFCEF43E1F4049670069A217 /* DetailViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -307,6 +309,7 @@
 				AFCEF44C1F4049670069A217 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 
